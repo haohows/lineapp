@@ -1,107 +1,118 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>飲料問答</title>
-    <!-- 引入 Tailwind CSS 讓畫面在手機上看起來更現代化、美觀 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 LINE LIFF SDK -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
-            background-color: #f3f4f6; /* 淺灰色背景 */
+            background-color: #f3f4f6;
+            /* 淺灰色背景 */
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
     </style>
 </head>
+
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
 
-    <!-- 主要內容卡片 -->
-    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-        
-        <!-- 裝飾用圖標 (可選) -->
+    <div id="loadingState" class="text-gray-500 font-bold text-lg flex flex-col items-center">
+        <svg class="animate-spin mb-3 h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+        系統載入中...
+    </div>
+
+    <div id="warningCard"
+        class="hidden bg-white border-t-4 border-red-500 rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
+        <div class="text-6xl mb-4">🚫</div>
+        <h1 class="text-2xl font-bold text-red-600 mb-4">請在 LINE 中開啟</h1>
+        <p class="text-gray-600 font-medium">
+            為了確保遊戲正常運作，請勿使用外部瀏覽器。<br><br>請回到 <b>LINE App 的聊天室</b> 中點擊遊戲連結！
+        </p>
+    </div>
+
+    <div id="mainContentCard" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
         <div class="text-6xl mb-4">🧋</div>
-        
+
         <h1 class="text-2xl font-bold text-gray-800 mb-6">問題時間</h1>
-        
+
         <p class="text-lg text-gray-600 mb-8 font-medium">
             【台灣最知名的飲料是？】
         </p>
 
-        <!-- 提示按鈕 -->
-        <button id="hintBtn" disabled
-            class="w-full bg-[#00B900] text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-green-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center">
-            <svg id="loadingIcon" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="btnText">載入中...</span>
+        <button id="hintBtn"
+            class="w-full bg-[#00B900] text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-green-600 transition duration-200 flex justify-center items-center">
+            <span id="btnText">【提示】</span>
         </button>
     </div>
 
     <script>
-        // 請將這裡替換成您在 LINE Developers console 中建立的 LIFF ID
-        const myLiffId = "YOUR_LIFF_ID_HERE"; 
-        
+        // 已經為您填入剛剛申請好的真實 LIFF ID
+        const myLiffId = "2009803370-18L4H6MV";
+
+        // 取得畫面元素
+        const loadingState = document.getElementById('loadingState');
+        const warningCard = document.getElementById('warningCard');
+        const mainContentCard = document.getElementById('mainContentCard');
         const hintBtn = document.getElementById('hintBtn');
-        const loadingIcon = document.getElementById('loadingIcon');
         const btnText = document.getElementById('btnText');
 
         // 初始化 LIFF 應用程式
         async function initializeLiff() {
-            // 增加防呆檢查：若未替換 LIFF ID，則停止初始化並提示使用者
-            if (myLiffId === "YOUR_LIFF_ID_HERE" || !myLiffId.trim()) {
-                loadingIcon.style.display = 'none';
-                btnText.textContent = '缺少 LIFF ID';
-                console.error('錯誤：請替換 myLiffId 為您真實的 LIFF ID');
-                alert('【錯誤】請先在程式碼中設定您的真實 LIFF ID！\n目前使用的是預設字串 "YOUR_LIFF_ID_HERE"，這會導致 "channel not found" 的錯誤。');
-                return;
-            }
-
             try {
                 await liff.init({ liffId: myLiffId });
-                
-                // 初始化成功後，更新按鈕狀態
-                loadingIcon.style.display = 'none';
-                btnText.textContent = '【提示】';
-                hintBtn.disabled = false;
 
-                // 若不在 LINE App 內開啟，可選擇引導登入或提示
-                if (!liff.isInClient() && !liff.isLoggedIn()) {
-                    // 網頁版測試時可開啟此行強制登入
-                    // liff.login(); 
+                // 初始化完成，隱藏載入中文字
+                loadingState.classList.add('hidden');
+
+                // 核心防護機制：檢查是否在 LINE App 內
+                if (liff.isInClient()) {
+                    // 在 LINE 裡面：顯示遊戲主畫面
+                    mainContentCard.classList.remove('hidden');
+                } else {
+                    // 不在 LINE 裡面 (例如 Safari, Chrome)：顯示警告畫面，不顯示題目
+                    warningCard.classList.remove('hidden');
                 }
             } catch (err) {
                 console.error('LIFF 初始化失敗', err);
-                loadingIcon.style.display = 'none';
-                btnText.textContent = '系統錯誤';
-                alert('LIFF 初始化失敗，請確認您的 LIFF ID 是否正確設定。');
+                loadingState.textContent = '系統發生錯誤，請稍後再試。';
+                alert('LIFF 初始化失敗，請確認設定。');
             }
         }
 
-        // 綁定按鈕點擊事件
+        // 綁定按鈕點擊事件 (只有在成功顯示按鈕時才能點擊)
         hintBtn.addEventListener('click', async () => {
-            // 確認目前是在 LINE App 裡面開啟
-            if (liff.isInClient()) {
-                try {
-                    // 使用 liff.sendMessages 代表使用者在聊天室發送訊息
-                    await liff.sendMessages([
-                        {
-                            type: 'text',
-                            text: '請給我飲料的提示'
-                        }
-                    ]);
-                    
-                    // 訊息發送完畢後，關閉 LIFF 視窗回到聊天室
-                    liff.closeWindow();
-                } catch (error) {
-                    console.error('發送訊息失敗', error);
-                    alert('傳送訊息失敗：' + error.message);
-                }
-            } else {
-                // 如果是在外部瀏覽器開啟（例如 Chrome, Safari），無法使用 sendMessages 和 closeWindow
-                alert('請在 LINE App 的聊天室中開啟此連結，才能使用自動傳送提示功能喔！');
+            // 點擊後讓按鈕呈現載入狀態，避免重複點擊
+            hintBtn.disabled = true;
+            hintBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            btnText.textContent = '傳送中...';
+
+            try {
+                // 代替使用者在聊天室發送訊息
+                await liff.sendMessages([
+                    {
+                        type: 'text',
+                        text: '請給我飲料的提示'
+                    }
+                ]);
+
+                // 訊息發送完畢後，關閉 LIFF 視窗回到聊天室
+                liff.closeWindow();
+            } catch (error) {
+                console.error('發送訊息失敗', error);
+                alert('傳送訊息失敗：' + error.message);
+
+                // 若失敗則恢復按鈕狀態
+                hintBtn.disabled = false;
+                hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnText.textContent = '【提示】';
             }
         });
 
@@ -109,4 +120,5 @@
         initializeLiff();
     </script>
 </body>
+
 </html>
