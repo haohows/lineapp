@@ -1,124 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>飲料問答</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body {
-            background-color: #f3f4f6;
-            /* 淺灰色背景 */
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-        }
+      body {
+        background-color: #f3f4f6;
+        /* 淺灰色背景 */
+        font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      }
     </style>
-</head>
+  </head>
 
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
-
+  <body class="flex flex-col items-center justify-center min-h-screen p-4">
     <div id="loadingState" class="text-gray-500 font-bold text-lg flex flex-col items-center">
-        <svg class="animate-spin mb-3 h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
-        </svg>
-        系統載入中...
+      <svg class="animate-spin mb-3 h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      系統載入中...
     </div>
 
-    <div id="warningCard"
-        class="hidden bg-white border-t-4 border-red-500 rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-        <div class="text-6xl mb-4">🚫</div>
-        <h1 class="text-2xl font-bold text-red-600 mb-4">請在 LINE 中開啟</h1>
-        <p class="text-gray-600 font-medium">
-            為了確保遊戲正常運作，請勿使用外部瀏覽器。<br><br>請回到 <b>LINE App 的聊天室</b> 中點擊遊戲連結！
-        </p>
+    <div id="warningCard" class="hidden bg-white border-t-4 border-red-500 rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
+      <div class="text-6xl mb-4">🚫</div>
+      <h1 class="text-2xl font-bold text-red-600 mb-4">請在 LINE 中開啟</h1>
+      <p class="text-gray-600 font-medium">為了確保遊戲正常運作，請勿使用外部瀏覽器。<br /><br />請回到 <b>LINE App 的聊天室</b> 中點擊遊戲連結！</p>
     </div>
 
     <div id="mainContentCard" class="hidden bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-        <div class="text-6xl mb-4">🧋</div>
+      <div class="text-6xl mb-4">🧋</div>
 
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">問題時間</h1>
+      <h1 class="text-2xl font-bold text-gray-800 mb-6">問題時間</h1>
 
-        <p class="text-lg text-gray-600 mb-8 font-medium">
-            【台灣最知名的飲料是？】
-        </p>
+      <p class="text-lg text-gray-600 mb-8 font-medium">【台灣最知名的飲料是？】</p>
 
-        <button id="hintBtn"
-            class="w-full bg-[#00B900] text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-green-600 transition duration-200 flex justify-center items-center">
-            <span id="btnText">【提示】</span>
-        </button>
+      <button id="hintBtn" class="w-full bg-[#00B900] text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-green-600 transition duration-200 flex justify-center items-center">
+        <span id="btnText">【提示】</span>
+      </button>
+      <button id="pointBtn" class="w-full mt-4 bg-yellow-500 text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-yellow-600 transition duration-200 flex justify-center items-center">
+        <span id="pointBtnText">領取集點</span>
+      </button>
     </div>
 
     <script>
-        // 已經為您填入剛剛申請好的真實 LIFF ID
-        const myLiffId = "2009803370-18L4H6MV";
+      // 已經為您填入剛剛申請好的真實 LIFF ID
+      const myLiffId = "2009803370-18L4H6MV";
 
-        // 取得畫面元素
-        const loadingState = document.getElementById('loadingState');
-        const warningCard = document.getElementById('warningCard');
-        const mainContentCard = document.getElementById('mainContentCard');
-        const hintBtn = document.getElementById('hintBtn');
-        const btnText = document.getElementById('btnText');
+      // 取得畫面元素
+      const loadingState = document.getElementById("loadingState");
+      const warningCard = document.getElementById("warningCard");
+      const mainContentCard = document.getElementById("mainContentCard");
+      const hintBtn = document.getElementById("hintBtn");
+      const btnText = document.getElementById("btnText");
 
-        // 初始化 LIFF 應用程式
-        async function initializeLiff() {
-            try {
-                await liff.init({ liffId: myLiffId });
+      // 初始化 LIFF 應用程式
+      async function initializeLiff() {
+        try {
+          await liff.init({ liffId: myLiffId });
 
-                // 初始化完成，隱藏載入中文字
-                loadingState.classList.add('hidden');
+          // 初始化完成，隱藏載入中文字
+          loadingState.classList.add("hidden");
 
-                // 核心防護機制：檢查是否在 LINE App 內
-                if (liff.isInClient()) {
-                    // 在 LINE 裡面：顯示遊戲主畫面
-                    mainContentCard.classList.remove('hidden');
-                } else {
-                    // 不在 LINE 裡面 (例如 Safari, Chrome)：顯示警告畫面，不顯示題目
-                    warningCard.classList.remove('hidden');
-                }
-            } catch (err) {
-                console.error('LIFF 初始化失敗', err);
-                loadingState.textContent = '系統發生錯誤，請稍後再試。';
-                alert('LIFF 初始化失敗，請確認設定。');
-            }
+          // 核心防護機制：檢查是否在 LINE App 內
+          if (liff.isInClient()) {
+            // 在 LINE 裡面：顯示遊戲主畫面
+            mainContentCard.classList.remove("hidden");
+          } else {
+            // 不在 LINE 裡面 (例如 Safari, Chrome)：顯示警告畫面，不顯示題目
+            warningCard.classList.remove("hidden");
+          }
+        } catch (err) {
+          console.error("LIFF 初始化失敗", err);
+          loadingState.textContent = "系統發生錯誤，請稍後再試。";
+          alert("LIFF 初始化失敗，請確認設定。");
         }
+      }
 
-        // 綁定按鈕點擊事件 (只有在成功顯示按鈕時才能點擊)
-        hintBtn.addEventListener('click', async () => {
-            // 點擊後讓按鈕呈現載入狀態，避免重複點擊
-            hintBtn.disabled = true;
-            hintBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            btnText.textContent = '傳送中...';
+      // 綁定按鈕點擊事件 (只有在成功顯示按鈕時才能點擊)
+      hintBtn.addEventListener("click", async () => {
+        // 點擊後讓按鈕呈現載入狀態，避免重複點擊
+        hintBtn.disabled = true;
+        hintBtn.classList.add("opacity-50", "cursor-not-allowed");
+        btnText.textContent = "傳送中...";
 
-            try {
-                // 代替使用者在聊天室發送訊息
-                await liff.sendMessages([
-                    {
-                        type: 'text',
-                        text: '請給我飲料的提示'
-                    }
-                ]);
+        try {
+          // 代替使用者在聊天室發送訊息
+          await liff.sendMessages([
+            {
+              type: "text",
+              text: "請給我飲料的提示",
+            },
+          ]);
 
-                // 訊息發送完畢後，關閉 LIFF 視窗回到聊天室
-                liff.closeWindow();
-            } catch (error) {
-                console.error('發送訊息失敗', error);
-                alert('傳送訊息失敗：' + error.message);
+          // 訊息發送完畢後，關閉 LIFF 視窗回到聊天室
+          liff.closeWindow();
+        } catch (error) {
+          console.error("發送訊息失敗", error);
+          alert("傳送訊息失敗：" + error.message);
 
-                // 若失敗則恢復按鈕狀態
-                hintBtn.disabled = false;
-                hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btnText.textContent = '【提示】';
-            }
-        });
+          // 若失敗則恢復按鈕狀態
+          hintBtn.disabled = false;
+          hintBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          btnText.textContent = "【提示】";
+        }
+      });
 
-        // 執行初始化
-        initializeLiff();
+      const pointBtn = document.getElementById("pointBtn");
+      const pointBtnText = document.getElementById("pointBtnText");
+
+      // 從 LINE OA 後台「點數發放行動條碼」QR Code 解析出的完整網址
+      const pointCardUrl = "https://u.lin.ee/U11RgyB";
+
+      pointBtn.addEventListener("click", () => {
+        pointBtn.disabled = true;
+        pointBtn.classList.add("opacity-50", "cursor-not-allowed");
+        pointBtnText.textContent = "開啟集點中...";
+
+        try {
+          liff.openWindow({
+            url: pointCardUrl,
+            external: false,
+          });
+        } catch (error) {
+          console.error("開啟集點連結失敗", error);
+          alert("開啟集點失敗：" + error.message);
+
+          pointBtn.disabled = false;
+          pointBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          pointBtnText.textContent = "領取集點";
+        }
+      });
+
+      // 執行初始化
+      initializeLiff();
     </script>
-</body>
-
+  </body>
 </html>
